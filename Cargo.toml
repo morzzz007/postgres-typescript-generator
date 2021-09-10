@@ -1,0 +1,10 @@
+[package]
+name = "postgres-typescript-generator"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+postgres = "0.19.1"
+convert_case = "0.1.0"
+Inflector = "0.11.4"
+dotenv = "0.15.0"
