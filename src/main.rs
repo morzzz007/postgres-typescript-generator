@@ -4,6 +4,7 @@ extern crate inflector;
 use convert_case::{Case, Casing};
 use dotenv::dotenv;
 use inflector::string::singularize::to_singular;
+use std::env;
 use std::error;
 use std::fs::File;
 use std::io::prelude::*;
@@ -37,8 +38,27 @@ fn format_column(column: &database::Column) -> String {
     )
 }
 
+fn get_database_configuration() -> Result<database::ClientConfiguration, std::env::VarError> {
+    let user = env::var("POSTGRES_USER")?;
+    let password = env::var("POSTGRES_PASSWORD")?;
+    let host = env::var("POSTGRES_HOST")?;
+    let port = env::var("POSTGRES_PORT")?;
+    let database = env::var("POSTGRES_DATABASE")?;
+
+    Ok(database::ClientConfiguration {
+        user,
+        password,
+        host,
+        port,
+        database,
+    })
+}
+
 fn main() -> Result<(), Box<dyn error::Error>> {
     dotenv().ok();
+
+    let mut client = database::connect(get_database_configuration()?)?;
+
     let path = Path::new("types.d.ts");
     let display = path.display();
 
@@ -48,7 +68,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     };
 
     let tables: Vec<database::Table>;
-    match database::get_tables() {
+    match database::fetch_table_definitions(&mut client) {
         Ok(result) => tables = result,
         Err(why) => panic!("Couldn't get tables {}", why),
     }
