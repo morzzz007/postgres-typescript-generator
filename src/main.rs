@@ -1,9 +1,7 @@
 extern crate dotenv;
 extern crate inflector;
 
-use convert_case::{Case, Casing};
 use dotenv::dotenv;
-use inflector::string::singularize::to_singular;
 use std::env;
 use std::error;
 use std::fs::File;
@@ -11,32 +9,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 mod database;
-
-fn get_column_type(column: &database::Column) -> &str {
-    match column.udt.as_str() {
-        "bool" => return "boolean",
-        "text" | "citext" | "money" | "numeric" | "int8" | "char" | "character" | "bpchar"
-        | "varchar" | "time" | "tsquery" | "tsvector" | "uuid" | "xml" | "cidr" | "inet"
-        | "macaddr" => return "string",
-        "smallint" | "integer" | "int" | "int4" | "real" | "float" | "float4" | "float8" => {
-            return "number"
-        }
-        "date" | "timestamp" | "timestamptz" => return "Date",
-        "json" | "jsonb" => return "unknown",
-        &_ => return "unknown",
-    }
-}
-
-fn format_column(column: &database::Column) -> String {
-    let column_type = get_column_type(column);
-    let nullable = if column.is_nullable { " | null" } else { "" };
-    format!(
-        "  {}: {}{};\n",
-        column.name.to_case(Case::Camel),
-        column_type,
-        nullable
-    )
-}
+mod typing_generator;
 
 fn get_database_configuration() -> Result<database::ClientConfiguration, std::env::VarError> {
     let user = env::var("POSTGRES_USER")?;
@@ -74,17 +47,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     }
 
     for table in tables.iter() {
-        file.write(
-            format!(
-                "export type {} = {{\n",
-                to_singular(&table.name).to_case(Case::UpperCamel)
-            )
-            .as_bytes(),
-        )?;
-        for column in table.columns.iter() {
-            file.write(format_column(column).as_bytes())?;
-        }
-        file.write(format!("}}\n\n").as_bytes())?;
+        file.write(typing_generator::generate_typing_from_table(table).as_bytes())?;
     }
 
     println!("Finished!");

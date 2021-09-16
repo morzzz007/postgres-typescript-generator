@@ -1,7 +1,7 @@
 use postgres::{Client, Error, NoTls};
 use std::error;
 
-pub mod repository;
+mod repository;
 
 pub struct Column {
   pub name: String,
