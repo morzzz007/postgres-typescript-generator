@@ -8,3 +8,5 @@ postgres = "0.19.1"
 convert_case = "0.1.0"
 Inflector = "0.11.4"
 dotenv = "0.15.0"
+toml = "0.5"
+serde = { version = "1.0.130", features = ["derive"] }
