@@ -47,7 +47,10 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     }
 
     for table in tables.iter() {
-        file.write(typing_generator::generate_typing_from_table(table).as_bytes())?;
+        file.write(
+            typing_generator::generate_typing(typing_generator::Source::DatabaseTable(table))
+                .as_bytes(),
+        )?;
     }
 
     println!("Finished!");
