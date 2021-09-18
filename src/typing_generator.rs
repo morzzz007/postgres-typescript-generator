@@ -5,6 +5,11 @@ use std::collections::HashMap;
 mod table;
 mod toml_value;
 
+pub struct TypingGeneratorResult {
+  pub string_value: String,
+  pub types: Vec<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TomlHashMap {
   #[serde(flatten)]
@@ -16,7 +21,7 @@ pub enum Source<'a> {
   TomlHashMap(TomlHashMap),
 }
 
-pub fn generate_typing(source: Source) -> String {
+pub fn generate_typing(source: Source) -> TypingGeneratorResult {
   match source {
     Source::DatabaseTable(table) => table::generate(table),
     Source::TomlHashMap(hash) => toml_value::generate(hash),

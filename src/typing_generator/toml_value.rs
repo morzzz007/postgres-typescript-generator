@@ -2,8 +2,9 @@ use crate::typing_generator;
 use convert_case::{Case, Casing};
 use inflector::string::singularize::to_singular;
 
-pub fn generate(decoded: typing_generator::TomlHashMap) -> String {
+pub fn generate(decoded: typing_generator::TomlHashMap) -> typing_generator::TypingGeneratorResult {
   let mut result = String::from("");
+  let mut generated_types: Vec<String> = Vec::new();
 
   for (table_name, sub_types) in decoded.typings.into_iter() {
     let singular_table_name = to_singular(&table_name).to_case(Case::UpperCamel);
@@ -24,7 +25,8 @@ pub fn generate(decoded: typing_generator::TomlHashMap) -> String {
                   "  {}: {};\n",
                   field_name,
                   field_typing.as_str().unwrap()
-                ))
+                ));
+                generated_types.push(format!("{}.{}", table_name, field_name));
               }
             }
             _ => {}
@@ -36,5 +38,9 @@ pub fn generate(decoded: typing_generator::TomlHashMap) -> String {
       _ => {}
     }
   }
-  result
+
+  typing_generator::TypingGeneratorResult {
+    string_value: result,
+    types: generated_types,
+  }
 }

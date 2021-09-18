@@ -44,6 +44,7 @@ fn write_extra_typings_to_file(mut file: &File) {
             let decoded: typing_generator::TomlHashMap = toml::from_str(&extra_typings).unwrap();
             file.write(
                 typing_generator::generate_typing(typing_generator::Source::TomlHashMap(decoded))
+                    .string_value
                     .as_bytes(),
             )
             .unwrap();
@@ -64,6 +65,7 @@ fn write_database_typings_to_file(mut file: &File) {
     for table in tables.iter() {
         file.write(
             typing_generator::generate_typing(typing_generator::Source::DatabaseTable(table))
+                .string_value
                 .as_bytes(),
         )
         .unwrap();

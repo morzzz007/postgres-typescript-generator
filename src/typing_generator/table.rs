@@ -1,4 +1,6 @@
 use crate::database;
+use crate::typing_generator;
+
 use convert_case::{Case, Casing};
 use inflector::string::singularize::to_singular;
 
@@ -28,7 +30,7 @@ fn format_column(column: &database::Column) -> String {
   )
 }
 
-pub fn generate(table: &database::Table) -> String {
+pub fn generate(table: &database::Table) -> typing_generator::TypingGeneratorResult {
   let singular_table_name = to_singular(&table.name).to_case(Case::UpperCamel);
   let typing_header = format!("export type {} = {{\n", singular_table_name);
   let typing_footer = "}\n\n";
@@ -37,5 +39,9 @@ pub fn generate(table: &database::Table) -> String {
     typing.push_str(&format_column(column))
   }
   typing.push_str(typing_footer);
-  typing
+
+  typing_generator::TypingGeneratorResult {
+    string_value: typing,
+    types: Vec::new(),
+  }
 }
