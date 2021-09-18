@@ -4,6 +4,7 @@ extern crate inflector;
 use dotenv::dotenv;
 use std::env;
 use std::error;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -27,18 +28,32 @@ fn get_database_configuration() -> Result<database::ClientConfiguration, std::en
     })
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
-    dotenv().ok();
+fn read_extra_typings() -> Option<String> {
+    let filename = "psql-typings.toml";
+    if !Path::new(filename).exists() {
+        return None;
+    }
 
-    let mut client = database::connect(get_database_configuration()?)?;
+    return Some(fs::read_to_string(filename).unwrap());
+}
 
-    let path = Path::new("types.d.ts");
-    let display = path.display();
+fn write_extra_typings_to_file(mut file: &File) {
+    let extra_typings = read_extra_typings();
+    match extra_typings {
+        Some(extra_typings) => {
+            let decoded: typing_generator::TomlHashMap = toml::from_str(&extra_typings).unwrap();
+            file.write(
+                typing_generator::generate_typing(typing_generator::Source::TomlHashMap(decoded))
+                    .as_bytes(),
+            )
+            .unwrap();
+        }
+        None => println!("No extra typings info found..."),
+    }
+}
 
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("Couldn't create {}: {}", display, why),
-        Ok(file) => file,
-    };
+fn write_database_typings_to_file(mut file: &File) {
+    let mut client = database::connect(get_database_configuration().unwrap()).unwrap();
 
     let tables: Vec<database::Table>;
     match database::fetch_table_definitions(&mut client) {
@@ -50,8 +65,24 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         file.write(
             typing_generator::generate_typing(typing_generator::Source::DatabaseTable(table))
                 .as_bytes(),
-        )?;
+        )
+        .unwrap();
     }
+}
+
+fn main() -> Result<(), Box<dyn error::Error>> {
+    dotenv().ok();
+
+    let path = Path::new("types.d.ts");
+    let display = path.display();
+
+    let file = match File::create(&path) {
+        Err(why) => panic!("Couldn't create {}: {}", display, why),
+        Ok(file) => file,
+    };
+
+    write_extra_typings_to_file(&file);
+    write_database_typings_to_file(&file);
 
     println!("Finished!");
     Ok(())
