@@ -37,19 +37,18 @@ fn read_extra_typings() -> Option<String> {
     return Some(fs::read_to_string(filename).unwrap());
 }
 
-fn write_extra_typings_to_file(mut file: &File) {
+fn write_extra_typings_to_file(mut file: &File) -> Vec<String> {
     let extra_typings = read_extra_typings();
     match extra_typings {
         Some(extra_typings) => {
             let decoded: typing_generator::TomlHashMap = toml::from_str(&extra_typings).unwrap();
-            file.write(
-                typing_generator::generate_typing(typing_generator::Source::TomlHashMap(decoded))
-                    .string_value
-                    .as_bytes(),
-            )
-            .unwrap();
+            let generated_typings =
+                typing_generator::generate_typing(typing_generator::Source::TomlHashMap(decoded));
+            file.write(generated_typings.string_value.as_bytes())
+                .unwrap();
+            generated_typings.types
         }
-        None => println!("No extra typings info found..."),
+        None => Vec::new(),
     }
 }
 
@@ -83,9 +82,9 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         Ok(file) => file,
     };
 
-    write_extra_typings_to_file(&file);
+    let types = write_extra_typings_to_file(&file);
     write_database_typings_to_file(&file);
 
-    println!("Finished!");
+    println!("Finished! {:#?}", types);
     Ok(())
 }
