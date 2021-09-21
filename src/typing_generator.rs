@@ -1,4 +1,6 @@
 use crate::database;
+use convert_case::{Case, Casing};
+use inflector::string::singularize::to_singular;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -26,4 +28,14 @@ pub fn generate_typing(source: Source) -> TypingGeneratorResult {
     Source::DatabaseTable(table) => table::generate(table),
     Source::TomlHashMap(hash) => toml_value::generate(hash),
   }
+}
+
+pub fn format_type_class_name(name: &str) -> String {
+  to_singular(&name).to_case(Case::UpperCamel)
+}
+
+pub fn format_sub_type_class_name(main_type: &str, sub_type: &str) -> String {
+  let m_type = format_type_class_name(main_type);
+  let s_type = sub_type.to_case(Case::UpperCamel);
+  format!("{}{}", m_type, s_type)
 }

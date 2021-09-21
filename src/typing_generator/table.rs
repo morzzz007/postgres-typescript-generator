@@ -2,7 +2,6 @@ use crate::database;
 use crate::typing_generator;
 
 use convert_case::{Case, Casing};
-use inflector::string::singularize::to_singular;
 
 fn get_column_type(column: &database::Column) -> &str {
   match column.udt.as_str() {
@@ -31,8 +30,8 @@ fn format_column(column: &database::Column) -> String {
 }
 
 pub fn generate(table: &database::Table) -> typing_generator::TypingGeneratorResult {
-  let singular_table_name = to_singular(&table.name).to_case(Case::UpperCamel);
-  let typing_header = format!("export type {} = {{\n", singular_table_name);
+  let type_class = typing_generator::format_type_class_name(&table.name);
+  let typing_header = format!("export type {} = {{\n", type_class);
   let typing_footer = "}\n\n";
   let mut typing: String = typing_header.to_owned();
   for column in table.columns.iter() {
