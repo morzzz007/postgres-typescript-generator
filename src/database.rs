@@ -7,6 +7,8 @@ pub struct Column {
   pub name: String,
   pub is_nullable: bool,
   pub udt: String,
+  pub path: String,
+  pub table: String,
 }
 
 pub struct Table {

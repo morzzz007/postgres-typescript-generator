@@ -23,9 +23,9 @@ pub enum Source<'a> {
   TomlHashMap(TomlHashMap),
 }
 
-pub fn generate_typing(source: Source) -> TypingGeneratorResult {
+pub fn generate_typing(source: Source, additional_types: &Vec<String>) -> TypingGeneratorResult {
   match source {
-    Source::DatabaseTable(table) => table::generate(table),
+    Source::DatabaseTable(table) => table::generate(table, additional_types),
     Source::TomlHashMap(hash) => toml_value::generate(hash),
   }
 }

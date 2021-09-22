@@ -28,7 +28,7 @@ fn get_database_configuration() -> Result<database::ClientConfiguration, std::en
     })
 }
 
-fn read_extra_typings() -> Option<String> {
+fn read_additional_typings() -> Option<String> {
     let filename = "psql-typings.toml";
     if !Path::new(filename).exists() {
         return None;
@@ -37,13 +37,16 @@ fn read_extra_typings() -> Option<String> {
     return Some(fs::read_to_string(filename).unwrap());
 }
 
-fn write_extra_typings_to_file(mut file: &File) -> Vec<String> {
-    let extra_typings = read_extra_typings();
-    match extra_typings {
-        Some(extra_typings) => {
-            let decoded: typing_generator::TomlHashMap = toml::from_str(&extra_typings).unwrap();
-            let generated_typings =
-                typing_generator::generate_typing(typing_generator::Source::TomlHashMap(decoded));
+fn write_additional_typings_to_file(mut file: &File) -> Vec<String> {
+    let additional_typings = read_additional_typings();
+    match additional_typings {
+        Some(additional_typings) => {
+            let decoded: typing_generator::TomlHashMap =
+                toml::from_str(&additional_typings).unwrap();
+            let generated_typings = typing_generator::generate_typing(
+                typing_generator::Source::TomlHashMap(decoded),
+                &Vec::new(),
+            );
             file.write(generated_typings.string_value.as_bytes())
                 .unwrap();
             generated_typings.types
@@ -52,7 +55,7 @@ fn write_extra_typings_to_file(mut file: &File) -> Vec<String> {
     }
 }
 
-fn write_database_typings_to_file(mut file: &File) {
+fn write_database_typings_to_file(mut file: &File, additional_types: &Vec<String>) {
     let mut client = database::connect(get_database_configuration().unwrap()).unwrap();
 
     let tables: Vec<database::Table>;
@@ -63,9 +66,12 @@ fn write_database_typings_to_file(mut file: &File) {
 
     for table in tables.iter() {
         file.write(
-            typing_generator::generate_typing(typing_generator::Source::DatabaseTable(table))
-                .string_value
-                .as_bytes(),
+            typing_generator::generate_typing(
+                typing_generator::Source::DatabaseTable(table),
+                additional_types,
+            )
+            .string_value
+            .as_bytes(),
         )
         .unwrap();
     }
@@ -82,9 +88,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         Ok(file) => file,
     };
 
-    let types = write_extra_typings_to_file(&file);
-    write_database_typings_to_file(&file);
-
-    println!("Finished! {:#?}", types);
+    let additional_types = write_additional_typings_to_file(&file);
+    write_database_typings_to_file(&file, &additional_types);
     Ok(())
 }

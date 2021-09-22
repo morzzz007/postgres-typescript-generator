@@ -3,23 +3,30 @@ use crate::typing_generator;
 
 use convert_case::{Case, Casing};
 
-fn get_column_type(column: &database::Column) -> &str {
+fn get_column_type(column: &database::Column, additional_types: &Vec<String>) -> String {
   match column.udt.as_str() {
-    "bool" => return "boolean",
+    "bool" => return String::from("boolean"),
     "text" | "citext" | "money" | "numeric" | "int8" | "char" | "character" | "bpchar"
     | "varchar" | "time" | "tsquery" | "tsvector" | "uuid" | "xml" | "cidr" | "inet"
-    | "macaddr" => return "string",
+    | "macaddr" => return String::from("string"),
     "smallint" | "integer" | "int" | "int4" | "real" | "float" | "float4" | "float8" => {
-      return "number"
+      return String::from("number")
     }
-    "date" | "timestamp" | "timestamptz" => return "Date",
-    "json" | "jsonb" => return "unknown",
-    &_ => return "unknown",
+    "date" | "timestamp" | "timestamptz" => return String::from("Date"),
+    "json" | "jsonb" => {
+      println!("{:#?}", additional_types);
+      if additional_types.contains(&column.path) {
+        return typing_generator::format_sub_type_class_name(&column.table, &column.name);
+      } else {
+        return String::from("unknown");
+      }
+    }
+    &_ => return String::from("unknown"),
   }
 }
 
-fn format_column(column: &database::Column) -> String {
-  let column_type = get_column_type(column);
+fn format_column(column: &database::Column, additional_types: &Vec<String>) -> String {
+  let column_type = get_column_type(column, additional_types);
   let nullable = if column.is_nullable { " | null" } else { "" };
   format!(
     "  {}: {}{};\n",
@@ -29,13 +36,16 @@ fn format_column(column: &database::Column) -> String {
   )
 }
 
-pub fn generate(table: &database::Table) -> typing_generator::TypingGeneratorResult {
+pub fn generate(
+  table: &database::Table,
+  additonal_types: &Vec<String>,
+) -> typing_generator::TypingGeneratorResult {
   let type_class = typing_generator::format_type_class_name(&table.name);
   let typing_header = format!("export type {} = {{\n", type_class);
   let typing_footer = "}\n\n";
   let mut typing: String = typing_header.to_owned();
   for column in table.columns.iter() {
-    typing.push_str(&format_column(column))
+    typing.push_str(&format_column(column, additonal_types))
   }
   typing.push_str(typing_footer);
 

@@ -22,12 +22,11 @@ pub fn generate(decoded: typing_generator::TomlHashMap) -> typing_generator::Typ
                   field_name,
                   field_typing.as_str().unwrap()
                 ));
-                generated_types.push(format!("{}.{}", table_name, field_name));
               }
             }
             _ => {}
           }
-
+          generated_types.push(format!("{}.{}", table_name, name));
           result.push_str(typing_footer);
         }
       }

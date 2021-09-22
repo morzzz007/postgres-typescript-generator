@@ -17,7 +17,7 @@ pub fn get_columns(client: &mut Client, table_name: &String) -> Result<Vec<Colum
       let is_nullable: &str = row.get(1);
       let udt: &str = row.get(2);
 
-      columns.push(Column{ name: column_name.into(), is_nullable: is_nullable == "YES", udt: udt.into() });
+      columns.push(Column{ name: column_name.into(), is_nullable: is_nullable == "YES", udt: udt.into(), path: format!("{}.{}", table_name, column_name), table: table_name.into() });
   }
   Ok(columns)
 }
