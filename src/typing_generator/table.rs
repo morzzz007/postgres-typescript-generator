@@ -14,9 +14,15 @@ fn get_column_type(column: &database::Column, additional_types: &Vec<String>) ->
     }
     "date" | "timestamp" | "timestamptz" => return String::from("Date"),
     "json" | "jsonb" => {
-      println!("{:#?}", additional_types);
       if additional_types.contains(&column.path) {
-        return typing_generator::format_sub_type_class_name(&column.table, &column.name);
+        let existing_type =
+          typing_generator::format_sub_type_class_name(&column.table, &column.name);
+
+        if column.column_default.starts_with("'[]'::jsonb") {
+          format!("Array<{}>", existing_type)
+        } else {
+          existing_type
+        }
       } else {
         return String::from("unknown");
       }

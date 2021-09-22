@@ -9,6 +9,7 @@ pub struct Column {
   pub udt: String,
   pub path: String,
   pub table: String,
+  pub column_default: String,
 }
 
 pub struct Table {
