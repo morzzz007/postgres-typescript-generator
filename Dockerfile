@@ -4,8 +4,5 @@ COPY ./    ./
 RUN cargo build --release
 
 FROM debian:11-slim
-WORKDIR /app
-RUN mkdir /exchange
-COPY ./create-typings.sh ./
 COPY --from=builder /build/target/release/postgres-typescript-generator ./
-CMD ["./create-typings.sh"]
+CMD ["./postgres-typescript-generator"]

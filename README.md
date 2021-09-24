@@ -8,4 +8,4 @@ Opinionated CLI tool to generate Typescript typings from PostgreSQL databases wr
 
 ## Create typings
 
-`docker run --env-file=./.env --network=host -v $(pwd):/exchange -it postgres-typescript-generator:latest`
+`docker run --env-file=./.env --network=host -v $(pwd)/psql-typings.toml:/psql-typings.toml -it postgres-typescript-generator:latest`
