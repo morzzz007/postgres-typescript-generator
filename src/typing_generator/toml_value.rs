@@ -10,7 +10,7 @@ pub fn generate(decoded: typing_generator::TomlHashMap) -> typing_generator::Typ
         for (name, fields) in sub_type {
           let type_class = typing_generator::format_sub_type_class_name(&table_name, &name);
           let typing_header = format!("export type {} = {{\n", type_class);
-          let typing_footer = "}\n\n";
+          let typing_footer = "};\n\n";
 
           result.push_str(&typing_header);
 

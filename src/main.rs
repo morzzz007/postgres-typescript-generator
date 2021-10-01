@@ -81,6 +81,6 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let additional_types = write_additional_typings_to_file(&mut output);
     write_database_typings_to_file(&mut output, &additional_types);
 
-    println!("{}", output);
+    print!("{}", output);
     Ok(())
 }
