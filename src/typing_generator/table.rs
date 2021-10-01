@@ -44,7 +44,7 @@ pub fn generate(
 ) -> typing_generator::TypingGeneratorResult {
   let type_class = typing_generator::format_type_class_name(&table.name);
   let typing_header = format!("export type {} = {{\n", type_class);
-  let typing_footer = "};\n\n";
+  let typing_footer = "};";
   let mut typing: String = typing_header.to_owned();
   for column in table.columns.iter() {
     typing.push_str(&format_column(column, additonal_types))

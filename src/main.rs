@@ -62,7 +62,9 @@ fn write_database_typings_to_file(output: &mut String, additional_types: &Vec<St
         Err(why) => panic!("Couldn't get tables {}", why),
     }
 
-    for table in tables.iter() {
+    let mut iterator = tables.iter().peekable();
+
+    while let Some(table) = iterator.next() {
         output.push_str(
             &typing_generator::generate_typing(
                 typing_generator::Source::DatabaseTable(table),
@@ -70,6 +72,17 @@ fn write_database_typings_to_file(output: &mut String, additional_types: &Vec<St
             )
             .string_value,
         );
+
+        match iterator.peek() {
+            Some(_) => {
+                output.push_str("\n\n");
+            }
+            None => {
+                output.push_str("\n");
+            }
+        }
+
+        iterator.next();
     }
 }
 
