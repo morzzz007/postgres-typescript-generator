@@ -36,6 +36,6 @@ pub fn format_type_class_name(name: &str) -> String {
 
 pub fn format_sub_type_class_name(main_type: &str, sub_type: &str) -> String {
   let m_type = format_type_class_name(main_type);
-  let s_type = sub_type.to_case(Case::UpperCamel);
+  let s_type = format_type_class_name(sub_type);
   format!("{}{}", m_type, s_type)
 }

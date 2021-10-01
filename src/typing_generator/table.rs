@@ -4,30 +4,26 @@ use crate::typing_generator;
 use convert_case::{Case, Casing};
 
 fn get_column_type(column: &database::Column, additional_types: &Vec<String>) -> String {
-  match column.udt.as_str() {
-    "bool" => return String::from("boolean"),
-    "text" | "citext" | "money" | "numeric" | "int8" | "char" | "character" | "bpchar"
-    | "varchar" | "time" | "tsquery" | "tsvector" | "uuid" | "xml" | "cidr" | "inet"
-    | "macaddr" => return String::from("string"),
-    "smallint" | "integer" | "int" | "int4" | "real" | "float" | "float4" | "float8" => {
-      return String::from("number")
-    }
-    "date" | "timestamp" | "timestamptz" => return String::from("Date"),
-    "json" | "jsonb" => {
-      if additional_types.contains(&column.path) {
-        let existing_type =
-          typing_generator::format_sub_type_class_name(&column.table, &column.name);
+  if additional_types.contains(&column.path) {
+    let existing_type = typing_generator::format_sub_type_class_name(&column.table, &column.name);
 
-        if column.column_default.starts_with("'[]'::jsonb") {
-          format!("Array<{}>", existing_type)
-        } else {
-          existing_type
-        }
-      } else {
-        return String::from("unknown");
-      }
+    if column.column_default.starts_with("'[]'::jsonb") {
+      format!("Array<{}>", existing_type)
+    } else {
+      existing_type
     }
-    &_ => return String::from("unknown"),
+  } else {
+    match column.udt.as_str() {
+      "bool" => return String::from("boolean"),
+      "text" | "citext" | "money" | "numeric" | "int8" | "char" | "character" | "bpchar"
+      | "varchar" | "time" | "tsquery" | "tsvector" | "uuid" | "xml" | "cidr" | "inet"
+      | "macaddr" => return String::from("string"),
+      "smallint" | "integer" | "int" | "int4" | "real" | "float" | "float4" | "float8" => {
+        return String::from("number")
+      }
+      "date" | "timestamp" | "timestamptz" => return String::from("Date"),
+      &_ => return String::from("unknown"),
+    }
   }
 }
 
